@@ -1,11 +1,16 @@
-import React, {ReactNode} from 'react'
+import React from 'react'
 import Navbar from "@/components/navigation/navbar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
-const RootLayout = ({ children }: { children: ReactNode }) => {
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <Navbar />
-      {children}
+      <SidebarProvider>
+        <Navbar />
+        <main>
+          {children}
+        </main>
+      </SidebarProvider>
     </>
   )
 }
