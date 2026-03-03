@@ -32,13 +32,15 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
-        System.out.println("Costruzione orario completo 5L ITTS C.Grassi in corso...");
+        System.out.println("Costruzione orario completo 5L ITTS C.Grassi con Compropresenze...");
 
         // 1. CREAZIONE CLASSE
-        Classe classe5L = new Classe(5, "L");
+        Classe classe5L = new Classe();
+        classe5L.setAnno(5);
+        classe5L.setSezione("L");
         classeRepo.save(classe5L);
 
-        // 2. CREAZIONE DOCENTI
+        // 2. CREAZIONE DOCENTI (Teoria e Laboratorio)
         Docente profHu = new Docente("Filippo", "Hu");
         Docente profZambon = new Docente("Tiziano", "Zambon");
         Docente profPerrone = new Docente("Giulio", "Perrone");
@@ -48,10 +50,12 @@ public class DataSeeder implements CommandLineRunner {
         Docente profCaristi = new Docente("Concetta", "Caristi");
         Docente profVecchio = new Docente("Emanuele", "Vecchio");
         Docente profDaidone = new Docente("Gioacchino", "Daidone");
-        Docente profReligione = new Docente("Docente", "Religione"); // Placeholder per religione
+        Docente profReligione = new Docente("D'Amico", "Religione");
+        Docente profAlternativa = new Docente("Verdi", "Alternativa");
         
         docenteRepo.saveAll(List.of(profHu, profZambon, profPerrone, profPaesano, 
-                            profBottiglieri, profGiorgio, profCaristi, profVecchio, profDaidone, profReligione));
+                                profBottiglieri, profGiorgio, profCaristi, profVecchio, 
+                                profDaidone, profReligione, profAlternativa));
 
         // 3. CREAZIONE AULE E LABORATORI
         Aula labB26 = new Aula(0, "B26", true);
@@ -61,69 +65,75 @@ public class DataSeeder implements CommandLineRunner {
         Aula aulaC05 = new Aula(0, "C05", false);
         Aula aulaC21 = new Aula(0, "C21", false);
         Aula aulaG01 = new Aula(0, "G01", false);
-        Aula palestraG00 = new Aula(0, "G00", false); // Palestra
+        Aula palestraG00 = new Aula(0, "G00", false); 
         
         aulaRepo.saveAll(List.of(labB26, labB24, aulaC01, aulaC10, aulaC05, aulaC21, aulaG01, palestraG00));
 
         // ==========================================================
-        // 4. INSERIMENTO ORARIO COMPLETO (Usando il metodo helper)
+        // 4. INSERIMENTO ORARIO COMPLETO (Con logica Compropresenza)
         // ==========================================================
 
-        // --- LUNEDÌ ---
-        inserisciOra(1, "Sistemi e Reti", GiornoSettimana.LUNEDI, classe5L, profBottiglieri, labB26);
-        inserisciOra(2, "Sistemi e Reti", GiornoSettimana.LUNEDI, classe5L, profBottiglieri, labB26);
-        inserisciOra(3, "Informatica", GiornoSettimana.LUNEDI, classe5L, profZambon, labB26);
-        inserisciOra(4, "Informatica", GiornoSettimana.LUNEDI, classe5L, profZambon, labB26);
-        inserisciOra(5, "Matematica", GiornoSettimana.LUNEDI, classe5L, profVecchio, aulaC01);
-        inserisciOra(6, "Matematica", GiornoSettimana.LUNEDI, classe5L, profVecchio, aulaC01);
-        inserisciOra(7, "Italiano", GiornoSettimana.LUNEDI, classe5L, profGiorgio, aulaC01);
-        inserisciOra(8, "Storia", GiornoSettimana.LUNEDI, classe5L, profGiorgio, aulaC01);
+        // --- LUNEDÌ --- (Sistemi Lab e Info Lab)
+        inserisciOra(1, "Sistemi e Reti", GiornoSettimana.LUNEDI, classe5L, profBottiglieri, profPaesano, labB26, false);
+        inserisciOra(2, "Sistemi e Reti", GiornoSettimana.LUNEDI, classe5L, profBottiglieri, profPaesano, labB26, false);
+        inserisciOra(3, "Informatica", GiornoSettimana.LUNEDI, classe5L, profHu, profZambon, labB26, false);
+        inserisciOra(4, "Informatica", GiornoSettimana.LUNEDI, classe5L, profHu, profZambon, labB26, false);
+        inserisciOra(5, "Matematica", GiornoSettimana.LUNEDI, classe5L, profVecchio, null, aulaC01, false);
+        inserisciOra(6, "Matematica", GiornoSettimana.LUNEDI, classe5L, profVecchio, null, aulaC01, false);
+        inserisciOra(7, "Italiano", GiornoSettimana.LUNEDI, classe5L, profGiorgio, null, aulaC01, false);
+        inserisciOra(8, "Storia", GiornoSettimana.LUNEDI, classe5L, profGiorgio, null, aulaC01, false);
 
-        // --- MARTEDÌ ---
-        inserisciOra(1, "Sistemi e Reti", GiornoSettimana.MARTEDI, classe5L, profBottiglieri, aulaC10);
-        inserisciOra(2, "Italiano", GiornoSettimana.MARTEDI, classe5L, profGiorgio, aulaC10);
-        inserisciOra(3, "Informatica", GiornoSettimana.MARTEDI, classe5L, profHu, labB26);
-        inserisciOra(4, "Informatica", GiornoSettimana.MARTEDI, classe5L, profHu, labB26);
-        inserisciOra(5, "Sistemi e Reti", GiornoSettimana.MARTEDI, classe5L, profBottiglieri, labB26);
-        inserisciOra(6, "TPSIT", GiornoSettimana.MARTEDI, classe5L, profPaesano, labB26);
+        // --- MARTEDÌ --- (Informatica Lab, Sistemi Lab, TPSIT Lab)
+        inserisciOra(1, "Sistemi e Reti", GiornoSettimana.MARTEDI, classe5L, profBottiglieri, null, aulaC10, false);
+        inserisciOra(2, "Italiano", GiornoSettimana.MARTEDI, classe5L, profGiorgio, null, aulaC10, false);
+        inserisciOra(3, "Informatica", GiornoSettimana.MARTEDI, classe5L, profHu, profZambon, labB26, false);
+        inserisciOra(4, "Informatica", GiornoSettimana.MARTEDI, classe5L, profHu, profZambon, labB26, false);
+        inserisciOra(5, "Sistemi e Reti", GiornoSettimana.MARTEDI, classe5L, profBottiglieri, profPaesano, labB26, false);
+        inserisciOra(6, "TPSIT", GiornoSettimana.MARTEDI, classe5L, profHu, profPaesano, labB26, false);
 
         // --- MERCOLEDÌ ---
-        inserisciOra(1, "Informatica", GiornoSettimana.MERCOLEDI, classe5L, profHu, aulaG01);
-        inserisciOra(2, "Informatica", GiornoSettimana.MERCOLEDI, classe5L, profHu, aulaG01);
-        inserisciOra(3, "TPSIT", GiornoSettimana.MERCOLEDI, classe5L, profPaesano, aulaG01);
-        inserisciOra(4, "Inglese", GiornoSettimana.MERCOLEDI, classe5L, profCaristi, aulaG01);
-        inserisciOra(5, "Scienze Motorie", GiornoSettimana.MERCOLEDI, classe5L, profDaidone, palestraG00);
-        inserisciOra(6, "Scienze Motorie", GiornoSettimana.MERCOLEDI, classe5L, profDaidone, palestraG00);
+        inserisciOra(1, "Informatica", GiornoSettimana.MERCOLEDI, classe5L, profHu, null, aulaG01, false);
+        inserisciOra(2, "Informatica", GiornoSettimana.MERCOLEDI, classe5L, profHu, null, aulaG01, false);
+        inserisciOra(3, "TPSIT", GiornoSettimana.MERCOLEDI, classe5L, profHu, null, aulaG01, false);
+        inserisciOra(4, "Inglese", GiornoSettimana.MERCOLEDI, classe5L, profCaristi, null, aulaG01, false);
+        inserisciOra(5, "Scienze Motorie", GiornoSettimana.MERCOLEDI, classe5L, profDaidone, null, palestraG00, false);
+        inserisciOra(6, "Scienze Motorie", GiornoSettimana.MERCOLEDI, classe5L, profDaidone, null, palestraG00, false);
 
-        // --- GIOVEDÌ ---
-        inserisciOra(1, "Inglese", GiornoSettimana.GIOVEDI, classe5L, profCaristi, aulaC05);
-        inserisciOra(2, "Italiano", GiornoSettimana.GIOVEDI, classe5L, profGiorgio, aulaC05);
-        inserisciOra(3, "Italiano", GiornoSettimana.GIOVEDI, classe5L, profGiorgio, aulaC05);
-        inserisciOra(4, "Matematica", GiornoSettimana.GIOVEDI, classe5L, profVecchio, aulaC05);
-        inserisciOra(5, "TPSIT", GiornoSettimana.GIOVEDI, classe5L, profHu, labB26);
-        inserisciOra(6, "TPSIT", GiornoSettimana.GIOVEDI, classe5L, profHu, labB26);
+        // --- GIOVEDÌ --- (TPSIT Lab)
+        inserisciOra(1, "Inglese", GiornoSettimana.GIOVEDI, classe5L, profCaristi, null, aulaC05, false);
+        inserisciOra(2, "Italiano", GiornoSettimana.GIOVEDI, classe5L, profGiorgio, null, aulaC05, false);
+        inserisciOra(3, "Italiano", GiornoSettimana.GIOVEDI, classe5L, profGiorgio, null, aulaC05, false);
+        inserisciOra(4, "Matematica", GiornoSettimana.GIOVEDI, classe5L, profVecchio, null, aulaC05, false);
+        inserisciOra(5, "TPSIT", GiornoSettimana.GIOVEDI, classe5L, profHu, profPaesano, labB26, false);
+        inserisciOra(6, "TPSIT", GiornoSettimana.GIOVEDI, classe5L, profHu, profPaesano, labB26, false);
 
-        // --- VENERDÌ ---
-        inserisciOra(1, "Inglese", GiornoSettimana.VENERDI, classe5L, profCaristi, aulaC21);
-        inserisciOra(2, "GPOI", GiornoSettimana.VENERDI, classe5L, profPerrone, aulaC21);
-        inserisciOra(3, "Religione", GiornoSettimana.VENERDI, classe5L, profReligione, aulaC21);
-        inserisciOra(4, "GPOI", GiornoSettimana.VENERDI, classe5L, profPerrone, aulaC21);
-        inserisciOra(5, "Storia", GiornoSettimana.VENERDI, classe5L, profGiorgio, aulaC21);
-        inserisciOra(6, "GPOI", GiornoSettimana.VENERDI, classe5L, profZambon, labB24);
+        // --- VENERDÌ --- (GPOI Lab e Gestione Religione/Alternativa)
+        inserisciOra(1, "Inglese", GiornoSettimana.VENERDI, classe5L, profCaristi, null, aulaC21, false);
+        inserisciOra(2, "GPOI", GiornoSettimana.VENERDI, classe5L, profPerrone, null, aulaC21, false);
+        
+        // Logica Sdoppiamento Religione/Alternativa
+        inserisciOra(3, "Religione", GiornoSettimana.VENERDI, classe5L, profReligione, null, aulaC21, false);
+        inserisciOra(3, "Alternativa", GiornoSettimana.VENERDI, classe5L, profAlternativa, null, aulaC21, true);
+        
+        inserisciOra(4, "GPOI", GiornoSettimana.VENERDI, classe5L, profPerrone, null, aulaC21, false);
+        inserisciOra(5, "Storia", GiornoSettimana.VENERDI, classe5L, profGiorgio, null, aulaC21, false);
+        inserisciOra(6, "GPOI", GiornoSettimana.VENERDI, classe5L, profPerrone, profZambon, labB24, false);
 
         System.out.println("Orario COMPLETO della 5L inserito con successo!");
     }
 
     private void inserisciOra(int numeroOra, String materia, GiornoSettimana giorno, 
-                              Classe classe, Docente docente, Aula aula) {
+                              Classe classe, Docente teoria, Docente lab, Aula aula, boolean isAlt) {
         OraCanonica ora = new OraCanonica();
         ora.setNumeroOra(numeroOra);
         ora.setMateria(materia);
         ora.setGiorno(giorno);
         ora.setVersione(VersioneOrario.DEFINITIVO);
         ora.setClasse(classe);
-        ora.setDocente(docente);
+        ora.setDocenteTeoria(teoria);
+        ora.setDocenteLaboratorio(lab);
         ora.setAula(aula);
+        ora.setAlternativa(isAlt);
         oraRepo.save(ora);
     }
 }

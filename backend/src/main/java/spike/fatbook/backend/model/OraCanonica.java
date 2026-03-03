@@ -1,41 +1,38 @@
 package spike.fatbook.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 import spike.fatbook.backend.enums.GiornoSettimana;
 import spike.fatbook.backend.enums.VersioneOrario;
 
 @Entity
 @Table(name = "ore_canoniche")
-@Getter 
-@Setter 
-@NoArgsConstructor
+@Data
 public class OraCanonica {
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int numeroOra; // 1 = 08:30-09:20, 2 = 09:20-10:10, ecc.
-    private String materia; // Es: "Informatica"
-
     @Enumerated(EnumType.STRING)
     private GiornoSettimana giorno;
+
+    private int numeroOra;
+    private String materia;
 
     @Enumerated(EnumType.STRING)
     private VersioneOrario versione;
 
     @ManyToOne
-    @JoinColumn(name = "classe_id")
     private Classe classe;
 
     @ManyToOne
-    @JoinColumn(name = "docente_id")
-    private Docente docente;
+    private Aula aula;
 
     @ManyToOne
-    @JoinColumn(name = "aula_id")
-    private Aula aula;
+    private Docente docenteTeoria;
+
+    @ManyToOne
+    private Docente docenteLaboratorio; // Può essere null se non c'è laboratorio
+
+    private boolean isAlternativa = false; // true se è l'ora per chi non fa religione
 }
