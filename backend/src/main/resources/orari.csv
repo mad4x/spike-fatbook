@@ -1,0 +1,159 @@
+classe,giorno,numero_ora,materia,docente,aula
+5A CD,LUNEDI,1,Lingua e letteratura italiana,-,G15
+5A CD,LUNEDI,2,Lingua e letteratura italiana,-,G15
+5A CD,LUNEDI,3,Elettrotecnica elettronica e automazione,-,G15
+5A CD,LUNEDI,4,Meccanica e macchine,-,G15
+5A CD,LUNEDI,5,Scienze navigazione struttura e conduzione mezzo aereo,-,G15
+5A CD,LUNEDI,6,Scienze navigazione struttura e conduzione mezzo aereo,-,G15
+5A CD,MARTEDI,1,Lingua inglese,-,I15A
+5A CD,MARTEDI,2,Scienze navigazione struttura e conduzione mezzo aereo,-,R36
+5A CD,MARTEDI,3,Scienze navigazione struttura e conduzione mezzo aereo,-,R36
+5A CD,MARTEDI,4,Scienze navigazione struttura e conduzione mezzo aereo,-,R36
+5A CD,MARTEDI,5,Meccanica e macchine,-,I15A
+5A CD,MARTEDI,6,Lingua e letteratura italiana,-,I15A
+5A CD,MERCOLEDI,1,Matematica,-,C24
+5A CD,MERCOLEDI,2,Diritto ed economia,-,C24
+5A CD,MERCOLEDI,3,Scienze navigazione struttura e conduzione mezzo aereo,-,R36
+5A CD,MERCOLEDI,4,Lingua e letteratura italiana,-,B08
+5A CD,MERCOLEDI,5,Storia,-,B08
+5A CD,MERCOLEDI,6,Religione / Alternativa,-,B08
+5A CD,MERCOLEDI,7,Elettrotecnica elettronica e automazione,-,R25
+5A CD,MERCOLEDI,8,Elettrotecnica elettronica e automazione,-,R25
+5A CD,GIOVEDI,1,Scienze navigazione struttura e conduzione mezzo aereo,-,R36
+5A CD,GIOVEDI,2,Scienze navigazione struttura e conduzione mezzo aereo,-,R36
+5A CD,GIOVEDI,3,Scienze motorie e sportive,-,Palestre
+5A CD,GIOVEDI,4,Scienze motorie e sportive,-,Palestre
+5A CD,GIOVEDI,5,Lingua inglese,-,C18
+5A CD,GIOVEDI,6,Diritto ed economia,-,C18
+5A CD,VENERDI,1,Meccanica e macchine,-,R27/28
+5A CD,VENERDI,2,Meccanica e macchine,-,R27/28
+5A CD,VENERDI,3,Lingua inglese,-,A05
+5A CD,VENERDI,4,Storia,-,A05
+5A CD,VENERDI,5,Matematica,-,A05
+5A CD,VENERDI,6,Matematica,-,A05
+5B CT,LUNEDI,1,Matematica,-,G01
+5B CT,LUNEDI,2,Matematica,-,G01
+5B CT,LUNEDI,3,Lingua inglese,-,G01
+5B CT,LUNEDI,4,Elettrotecnica elettronica e automazione,-,G01
+5B CT,LUNEDI,5,Struttura costruzione sistemi impianti mezzo aereo,-,G01
+5B CT,LUNEDI,6,Struttura costruzione sistemi impianti mezzo aereo,-,G01
+5B CT,MARTEDI,1,Elettrotecnica elettronica e automazione,-,R25
+5B CT,MARTEDI,2,Elettrotecnica elettronica e automazione,-,R25
+5B CT,MARTEDI,3,Storia,-,R35
+5B CT,MARTEDI,4,Meccanica macchine e sistemi propulsivi,-,R12/13
+5B CT,MARTEDI,5,Struttura costruzione sistemi impianti mezzo aereo,-,R38
+5B CT,MARTEDI,6,Struttura costruzione sistemi impianti mezzo aereo,-,R38
+5B CT,MERCOLEDI,1,Matematica,-,I06
+5B CT,MERCOLEDI,2,Lingua inglese,-,I06
+5B CT,MERCOLEDI,3,Storia,-,C03
+5B CT,MERCOLEDI,4,Meccanica macchine e sistemi propulsivi,-,R12/13
+5B CT,MERCOLEDI,5,Lingua e letteratura italiana,-,B01
+5B CT,MERCOLEDI,6,Lingua e letteratura italiana,-,B01
+5B CT,GIOVEDI,1,Scienze motorie e sportive,-,Palestre
+5B CT,GIOVEDI,2,Scienze motorie e sportive,-,Palestre
+5B CT,GIOVEDI,3,Diritto ed economia,-,B01
+5B CT,GIOVEDI,4,Lingua inglese,-,B01
+5B CT,GIOVEDI,5,Meccanica macchine e sistemi propulsivi,-,B01
+5B CT,GIOVEDI,6,Meccanica macchine e sistemi propulsivi,-,B01
+5B CT,GIOVEDI,7,Struttura costruzione sistemi impianti mezzo aereo,-,R38
+5B CT,GIOVEDI,8,Struttura costruzione sistemi impianti mezzo aereo,-,R38
+5B CT,VENERDI,1,Struttura costruzione sistemi impianti mezzo aereo,-,R38
+5B CT,VENERDI,2,Struttura costruzione sistemi impianti mezzo aereo,-,R38
+5B CT,VENERDI,3,Religione / Alternativa,-,B05
+5B CT,VENERDI,4,Lingua e letteratura italiana,-,B05
+5B CT,VENERDI,5,Lingua e letteratura italiana,-,B05
+5B CT,VENERDI,6,Diritto ed economia,-,B05
+5C CD - CT,LUNEDI,1,Ora libera / Non assegnata,-,-
+5C CD - CT,LUNEDI,2,Ora libera / Non assegnata,-,-
+5C CD - CT,LUNEDI,3,Ora libera / Non assegnata,-,-
+5C CD - CT,LUNEDI,4,Ora libera / Non assegnata,-,-
+5C CD - CT,LUNEDI,5,Diritto ed economia,-,G05
+5C CD - CT,LUNEDI,6,Religione / Alternativa,-,G13/G05
+5C CD - CT,MARTEDI,1,Lingua e letteratura italiana,-,B06
+5C CD - CT,MARTEDI,2,Lingua e letteratura italiana,-,B06
+5C CD - CT,MARTEDI,3,Lingua inglese,-,B06
+5C CD - CT,MARTEDI,4,Elettrotecnica elettronica e automaz,-,B03
+5C CD - CT,MARTEDI,5,Scienze motorie e sportive,-,Palestre
+5C CD - CT,MARTEDI,6,Scienze motorie e sportive,-,Palestre
+5C CD - CT,MERCOLEDI,1,Lingua e letteratura italiana,-,B02
+5C CD - CT,MERCOLEDI,2,Lingua e letteratura italiana,-,B02
+5C CD - CT,MERCOLEDI,3,Ora libera / Non assegnata,-,-
+5C CD - CT,MERCOLEDI,4,Lingua Inglese,-,-
+5C CD - CT,MERCOLEDI,5,Ora libera / Non assegnata,-,-
+5C CD - CT,MERCOLEDI,6,Ora libera / Non assegnata,-,-
+5C CD - CT,GIOVEDI,1,Diritto ed economia,-,115B
+5C CD - CT,GIOVEDI,2,Elettrotecnica elettronica e automaz,-,R25
+5C CD - CT,GIOVEDI,3,Elettrotecnica elettronica e automaz,-,R25
+5C CD - CT,GIOVEDI,4,Matematica,-,R01
+5C CD - CT,GIOVEDI,5,Ora libera / Non assegnata,-,-
+5C CD - CT,GIOVEDI,6,Ora libera / Non assegnata,-,-
+5C CD - CT,VENERDI,1,Matematica,-,R34
+5C CD - CT,VENERDI,2,Matematica,-,R34
+5C CD - CT,VENERDI,3,Ora libera / Non assegnata,-,-
+5C CD - CT,VENERDI,4,Lingua Inglese,-,R30
+5C CD - CT,VENERDI,5,Storia,-,R30
+5C CD - CT,VENERDI,6,Storia,-,R30
+5C-CD,LUNEDI,1,Scienze navig strut cond mezzo aereo,-,G13
+5C-CD,LUNEDI,2,Scienze navig strut cond mezzo aereo,-,G13
+5C-CD,LUNEDI,3,Meccanica e macchine,-,G13
+5C-CD,LUNEDI,4,Meccanica e macchine,-,G13
+5C-CD,LUNEDI,5,Ora libera / Non assegnata,-,-
+5C-CD,LUNEDI,6,Ora libera / Non assegnata,-,-
+5C-CD,MARTEDI,1,Ora libera / Non assegnata,-,-
+5C-CD,MARTEDI,2,Ora libera / Non assegnata,-,-
+5C-CD,MARTEDI,3,Ora libera / Non assegnata,-,-
+5C-CD,MARTEDI,4,Ora libera / Non assegnata,-,-
+5C-CD,MARTEDI,5,Ora libera / Non assegnata,-,-
+5C-CD,MARTEDI,6,Ora libera / Non assegnata,-,-
+5C-CD,MARTEDI,7,Scienze navig strut cond mezzo aereo,-,R36
+5C-CD,MARTEDI,8,Scienze navig strut cond mezzo aereo,-,R36
+5C-CD,MERCOLEDI,1,Ora libera / Non assegnata,-,-
+5C-CD,MERCOLEDI,2,Ora libera / Non assegnata,-,-
+5C-CD,MERCOLEDI,3,Scienze navig strut cond mezzo aereo,-,R32
+5C-CD,MERCOLEDI,4,Ora libera / Non assegnata,-,-
+5C-CD,MERCOLEDI,5,Meccanica e macchine,-,R37
+5C-CD,MERCOLEDI,6,Meccanica e macchine,-,R37
+5C-CD,GIOVEDI,1,Ora libera / Non assegnata,-,-
+5C-CD,GIOVEDI,2,Ora libera / Non assegnata,-,-
+5C-CD,GIOVEDI,3,Ora libera / Non assegnata,-,-
+5C-CD,GIOVEDI,4,Ora libera / Non assegnata,-,-
+5C-CD,GIOVEDI,5,Scienze navig strut cond mezzo aereo,-,R36
+5C-CD,GIOVEDI,6,Scienze navig strut cond mezzo aereo,-,R36
+5C-CD,VENERDI,1,Ora libera / Non assegnata,-,-
+5C-CD,VENERDI,2,Ora libera / Non assegnata,-,-
+5C-CD,VENERDI,3,Scienze navig strut cond mezzo aereo,-,R32
+5C-CD,VENERDI,4,Ora libera / Non assegnata,-,-
+5C-CD,VENERDI,5,Ora libera / Non assegnata,-,-
+5C-CD,VENERDI,6,Ora libera / Non assegnata,-,-
+5L,LUNEDI,1,Sistemi e Reti,Bottiglieri / Paesano,B26
+5L,LUNEDI,2,Sistemi e Reti,Bottiglieri / Paesano,B26
+5L,LUNEDI,3,Informatica,Hu / Zambon,B26
+5L,LUNEDI,4,Informatica,Hu / Zambon,B26
+5L,LUNEDI,5,Matematica,Vecchio,C01
+5L,LUNEDI,6,Matematica,Vecchio,C01
+5L,LUNEDI,7,Italiano,Giorgio,C01
+5L,LUNEDI,8,Storia,Giorgio,C01
+5L,MARTEDI,1,Sistemi e Reti,Bottiglieri,C10
+5L,MARTEDI,2,Italiano,Giorgio,C10
+5L,MARTEDI,3,Informatica,Hu / Zambon,B26
+5L,MARTEDI,4,Informatica,Hu / Zambon,B26
+5L,MARTEDI,5,Sistemi e Reti,Bottiglieri / Paesano,B26
+5L,MARTEDI,6,TPSIT,Hu / Paesano,B26
+5L,MERCOLEDI,1,Informatica,Hu,G01
+5L,MERCOLEDI,2,Informatica,Hu,G01
+5L,MERCOLEDI,3,TPSIT,Hu,G01
+5L,MERCOLEDI,4,Inglese,Caristi,G01
+5L,MERCOLEDI,5,Scienze Motorie,Daidone,G00
+5L,MERCOLEDI,6,Scienze Motorie,Daidone,G00
+5L,GIOVEDI,1,Inglese,Caristi,C05
+5L,GIOVEDI,2,Italiano,Giorgio,C05
+5L,GIOVEDI,3,Italiano,Giorgio,C05
+5L,GIOVEDI,4,Matematica,Vecchio,C05
+5L,GIOVEDI,5,TPSIT,Hu / Paesano,B26
+5L,GIOVEDI,6,TPSIT,Hu / Paesano,B26
+5L,VENERDI,1,Inglese,Caristi,C21
+5L,VENERDI,2,GPOI,Perrone,C21
+5L,VENERDI,3,Religione / Alternativa,D Amico / Salvatore,C21 / C01
+5L,VENERDI,4,GPOI,Perrone,C21
+5L,VENERDI,5,Storia,Giorgio,C21
+5L,VENERDI,6,GPOI,Perrone / Zambon,B24
