@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "classi")
-@Getter 
-@Setter 
+@Table(name = "classe")
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Classe {
@@ -18,12 +17,9 @@ public class Classe {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int anno; 
-    private String sezione; 
+    @Setter
+    private int anno;
 
-    // Costruttore manuale per il DataSeeder
-    public Classe(int anno, String sezione) {
-        this.anno = anno;
-        this.sezione = sezione;
-    }
+    @Setter
+    private String sezione;
 }
