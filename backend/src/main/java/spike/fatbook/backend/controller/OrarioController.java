@@ -24,8 +24,8 @@ public class OrarioController {
                         ora.getGiorno().name(),
                         ora.getNumeroOra(),
                         ora.getMateria(),
-                        ora.getDocenteTeoria().getCognome(),
-                        ora.getDocenteLaboratorio() != null ? ora.getDocenteLaboratorio().getCognome() : "-",
+                        ora.getDocenteTeoria().getUtente().getCognome(),
+                        ora.getDocenteLaboratorio() != null ? ora.getDocenteLaboratorio().getUtente().getCognome() : "-",
                         ora.getAula().getNumero(),
                         ora.isAlternativa()
                 ))

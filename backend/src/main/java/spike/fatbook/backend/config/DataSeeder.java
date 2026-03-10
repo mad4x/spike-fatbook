@@ -76,8 +76,8 @@ public class DataSeeder implements CommandLineRunner {
             // 2. DOCENTE
             Docente docente = docentiMap.computeIfAbsent(nomeDocente, k -> {
                 Docente d = new Docente();
-                d.setNome("");
-                d.setCognome(k);
+                d.getUtente().setNome("");
+                d.getUtente().setCognome(k);
                 return docenteRepo.save(d);
             });
 
