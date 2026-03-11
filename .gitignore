@@ -41,4 +41,5 @@ frontend/.env.local
 next-env.d.ts
 
 .idea
+.vscode
 .env*
