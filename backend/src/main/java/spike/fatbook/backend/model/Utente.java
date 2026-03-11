@@ -1,10 +1,10 @@
 package spike.fatbook.backend.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "utente")
@@ -28,4 +28,13 @@ public class Utente {
     @Setter
     @Column(nullable = false, unique = true)
     private String email;
+
+    @OneToMany(mappedBy = "utente", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<UtenteRuolo> ruoli = new ArrayList<>();
+
+    public boolean hasRole(String ruolo) {
+        return ruoli.stream()
+                .anyMatch(r -> r.getRuolo().getNome().equals(ruolo));
+    }
 }
