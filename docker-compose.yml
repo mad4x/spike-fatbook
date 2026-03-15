@@ -1,18 +1,19 @@
 version: '3.8'
 
 services:
-  # 1. Database
   db:
     image: postgres:15-alpine
     container_name: postgres-db
     restart: always
-    env_file: .env
+    environment:
+      POSTGRES_DB: fatbook_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "5432:5432" # Fondamentale: espone il DB al tuo PC
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # 1.1 Manager Database
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin-container
@@ -23,37 +24,6 @@ services:
       - "5050:80"
     depends_on:
       - db
-    # HO RIMOSSO 'networks' QUI PERCHÉ USA QUELLA DI DEFAULT
-
-  # 2. Backend Spring Boot
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: spring-backend
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-
-  # 3. Frontend Next.js
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: nextjs-frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    env_file:
-      - .env
 
 volumes:
   postgres_data:
