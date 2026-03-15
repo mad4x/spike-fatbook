@@ -1,5 +1,7 @@
 package spike.fatbook.backend.service;
 
+import org.springframework.lang.NonNull;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,10 +21,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) {
-
-        Utente utente = utenteRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(email));
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Utente utente = utenteRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato con email: " + username));
 
         List<String> ruoli = utente.getRuoli().stream()
                 .map(ruolo -> ruolo.getRuolo().getNomeRuolo().name())
@@ -30,7 +31,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return User.builder()
                 .username(utente.getEmail())
-                .password("")
+                .password("{noop}placeholder") // Meglio mettere questo per evitare errori del builder
                 .roles(ruoli.toArray(new String[0]))
                 .build();
     }
