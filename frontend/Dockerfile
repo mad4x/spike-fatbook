@@ -15,6 +15,3 @@ COPY . .
 
 # Espone la porta 3000
 EXPOSE 3000
-
-# Comando di avvio (in modalità sviluppo per vedere le modifiche live)
-CMD ["npm", "run", "dev"]

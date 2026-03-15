@@ -54,6 +54,10 @@ services:
       - /app/node_modules
     env_file:
       - .env
+    command: npm run dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
 
 volumes:
   postgres_data:
