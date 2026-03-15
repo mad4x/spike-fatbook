@@ -3,6 +3,10 @@ package spike.fatbook.backend.security;
 import org.springframework.context.annotation.*;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -21,8 +25,27 @@ public class SecurityConfig {
 
                         // tutto il resto richiede login
                         .anyRequest().authenticated()
-                );
+                )
+                .httpBasic(org.springframework.security.config.Customizer.withDefaults());
 
         return http.build();
+    }
+
+    @Bean
+    public UserDetailsService users() {
+
+        UserDetails docente = User.builder()
+                .username("docente")
+                .password("{noop}password")
+                .roles("DOCENTE")
+                .build();
+
+        UserDetails vicepreside = User.builder()
+                .username("vicepreside")
+                .password("{noop}password")
+                .roles("VICEPRESIDE")
+                .build();
+
+        return new InMemoryUserDetailsManager(docente, vicepreside);
     }
 }
