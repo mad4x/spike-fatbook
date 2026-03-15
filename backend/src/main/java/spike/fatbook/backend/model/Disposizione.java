@@ -1,16 +1,16 @@
 package spike.fatbook.backend.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+//import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
+//import org.springframework.format.annotation.DateTimeFormat;
 import spike.fatbook.backend.enums.MotivoDisposizione;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
+//import java.time.LocalTime;
 
 @Entity
 @Table(name = "disposizione")
@@ -41,4 +41,5 @@ public class Disposizione {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "docente_id")
     private Docente docente;
+    
 }

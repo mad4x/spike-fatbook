@@ -1,14 +1,12 @@
 package spike.fatbook.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "aula")
-@Getter
+@Getter 
+@Setter // Aggiungiamo Setter per sicurezza
 @NoArgsConstructor
 @AllArgsConstructor
 public class Aula {
@@ -17,21 +15,19 @@ public class Aula {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     @Column(nullable = false)
     private int piano;
 
-    @Setter
     @Column(nullable = false)
     private String numero;
 
-    @Setter
     private boolean laboratorio;
 
-    // Costruttore manuale per il DataSeeder
-    public Aula(int piano, String numero, boolean laboratorio) {
-        this.piano = piano;
+    // COSTRUTTORE FONDAMENTALE: 
+    // Deve rispecchiare ESATTAMENTE l'ordine usato nel Service: (String, int, boolean)
+    public Aula(String numero, int piano, boolean laboratorio) {
         this.numero = numero;
+        this.piano = piano;
         this.laboratorio = laboratorio;
     }
 }
