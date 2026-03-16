@@ -20,7 +20,7 @@ public class OrarioService {
     }
 
     public List<OrarioSinteticoDTO> getOrarioByDocente(String docenteEmail) {
-        return repository.findByDocenteEmail(docenteEmail).stream()
+        return repository.findOreByDocenteEmail(docenteEmail).stream()
             .map(o -> new OrarioSinteticoDTO(
                 o.getClasse().getAnno() + o.getClasse().getSezione(),
                 o.getNumeroOra(),
