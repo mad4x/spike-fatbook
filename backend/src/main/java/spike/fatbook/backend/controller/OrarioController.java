@@ -3,6 +3,7 @@ package spike.fatbook.backend.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import spike.fatbook.backend.dto.OrarioSinteticoDTO;
@@ -25,8 +26,8 @@ public class OrarioController {
      * Consegna la lista sintetica delle ore relative a un docente
      */
     @GetMapping
-    public ResponseEntity<List<OrarioSinteticoDTO>> getOrario(@RequestParam String docenteEmail) {
-        return ResponseEntity.ok(orarioService.getOrarioByDocente(docenteEmail));
+    public ResponseEntity<List<OrarioSinteticoDTO>> getOrario(Authentication auth) {
+        return ResponseEntity.ok(orarioService.getOrarioByDocente(auth.getName()));
     }
 
     /**
