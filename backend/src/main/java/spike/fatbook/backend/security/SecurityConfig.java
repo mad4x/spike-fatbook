@@ -44,6 +44,7 @@ public class SecurityConfig {
                 // 2. Regole di accesso
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Lascia passare tutti per il login/registrazione
+                    .requestMatchers("/api/avvisi/**").permitAll()
                         .anyRequest().authenticated() // Richiede il token JWT per QUALSIASI altra rotta (es. /api/me)
                 )
 
