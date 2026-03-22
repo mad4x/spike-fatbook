@@ -25,17 +25,15 @@ export const getRolesFromToken = (): string[] => {
 
     try {
         const decoded = jwtDecode<CustomJwtPayload>(token);
-
-        // --- DEBUG TEMPORANEO ---
-        // Questo ci mostrerà nella console del browser com'è fatto il token dentro!
-        console.log("Token decodificato:", decoded);
-        // ------------------------
-
         return decoded.authorities || [];
     } catch (error) {
         console.error("Token non valido o malformato:", error);
         return [];
     }
+};
+
+export const hasVicepresidenzaRole = (roles: string[]): boolean => {
+    return roles.includes("ROLE_VICEPRESIDE") || roles.includes("ROLE_VICEPRESIDENZA") || roles.includes("ROLE_ADMIN");
 };
 
 // Estrae i dati anagrafici per la Sidebar
@@ -60,7 +58,7 @@ export const getUserInfo = (token: string|null) => {
 // 4. Controllo specifico per la Sidebar
 export const isVicepreside = (): boolean => {
     const roles = getRolesFromToken();
-    return roles.includes("ROLE_VICEPRESIDE");
+    return hasVicepresidenzaRole(roles);
 };
 
 // 5. Il "Postino" (Interceptor Custom per Next.js)
@@ -87,7 +85,7 @@ export const fetchWithAuth =
     if (response.status === 401) {
         if (typeof window !== "undefined") {
             localStorage.removeItem("token");
-            window.location.href = "/login"; // Redirect forzato
+            window.location.href = "/sign-in";
         }
     }
 

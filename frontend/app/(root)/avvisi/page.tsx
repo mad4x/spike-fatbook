@@ -2,55 +2,192 @@
 
 import { useEffect, useState } from 'react';
 import { getBaseUrl } from '@/lib/api-url';
+import { fetchWithAuth, getRolesFromToken, hasVicepresidenzaRole } from '@/lib/jwt';
+
+type PrioritaAvviso = 'NORMALE' | 'ALTA';
+type StatoAvviso = 'BOZZA' | 'PUBBLICATO';
 
 interface Avviso {
   id: number;
   titolo: string;
+  contenuto: string;
+  dataCreazione: string;
+  dataAggiornamento?: string | null;
+  autore: string;
+  priorita: PrioritaAvviso;
+  stato: StatoAvviso;
   categoria: string;
-  data: string;
-  letto: boolean;
-  descrizione?: string;
+  tags: string[];
+  allegati: string[];
+  creatoDa?: string | null;
+  aggiornatoDa?: string | null;
 }
 
 interface FormData {
   titolo: string;
-  descrizione: string;
+  contenuto: string;
+  autore: string;
   categoria: string;
+  priorita: PrioritaAvviso;
+  stato: StatoAvviso;
+  tagsInput: string;
+  allegatiInput: string;
 }
+
+interface AvvisoWritePayload {
+  titolo: string;
+  contenuto: string;
+  autore: string;
+  categoria: string;
+  priorita: PrioritaAvviso;
+  stato: StatoAvviso;
+  tags: string[];
+  allegati: string[];
+}
+
+const initialFormData: FormData = {
+  titolo: '',
+  contenuto: '',
+  autore: '',
+  categoria: 'Generale',
+  priorita: 'NORMALE',
+  stato: 'PUBBLICATO',
+  tagsInput: '',
+  allegatiInput: ''
+};
 
 export default function AvvisiPage() {
   const [avvisi, setAvvisi] = useState<Avviso[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [networkError, setNetworkError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-  const userRole = 'vicepreside';
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filtroCategoria, setFiltroCategoria] = useState<string>('Tutte');
+  const [filtroPriorita, setFiltroPriorita] = useState<'TUTTE' | PrioritaAvviso>('TUTTE');
+  const [userRoles, setUserRoles] = useState<string[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState<FormData>({
-    titolo: '',
-    descrizione: '',
-    categoria: 'Comunicazione - Circolare'
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
+  const [selectedAvviso, setSelectedAvviso] = useState<Avviso | null>(null);
+  const [selectedViewAvviso, setSelectedViewAvviso] = useState<Avviso | null>(null);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [editFormData, setEditFormData] = useState<FormData>(initialFormData);
+
+  const canManageAvvisi = hasVicepresidenzaRole(userRoles);
+
+  const parseMultiValue = (input: string): string[] => {
+    return input
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  };
+
+  const normalizeList = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter((item) => item.length > 0);
+    }
+
+    if (typeof value === 'string') {
+      return parseMultiValue(value);
+    }
+
+    return [];
+  };
+
+  const normalizeAvviso = (raw: any): Avviso => {
+    const priorita: PrioritaAvviso = raw?.priorita === 'ALTA' ? 'ALTA' : 'NORMALE';
+    const stato: StatoAvviso = raw?.stato === 'BOZZA' ? 'BOZZA' : 'PUBBLICATO';
+
+    return {
+      id: Number(raw?.id ?? Date.now()),
+      titolo: typeof raw?.titolo === 'string' ? raw.titolo : '',
+      contenuto: typeof raw?.contenuto === 'string' ? raw.contenuto : '',
+      dataCreazione: typeof raw?.dataCreazione === 'string' ? raw.dataCreazione : '',
+      dataAggiornamento: typeof raw?.dataAggiornamento === 'string' ? raw.dataAggiornamento : null,
+      autore: typeof raw?.autore === 'string' ? raw.autore : '',
+      priorita,
+      stato,
+      categoria: typeof raw?.categoria === 'string' && raw.categoria.trim() ? raw.categoria : 'Generale',
+      tags: normalizeList(raw?.tags),
+      allegati: normalizeList(raw?.allegati),
+      creatoDa: typeof raw?.creatoDa === 'string' ? raw.creatoDa : null,
+      aggiornatoDa: typeof raw?.aggiornatoDa === 'string' ? raw.aggiornatoDa : null
+    };
+  };
+
+  const toOpenableUrl = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return '';
+    }
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    if (/^www\./i.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+    return `https://${trimmed}`;
+  };
+
+  const buildPayload = (data: FormData): AvvisoWritePayload => ({
+    titolo: data.titolo.trim(),
+    contenuto: data.contenuto.trim(),
+    autore: data.autore.trim(),
+    categoria: data.categoria.trim() || 'Generale',
+    priorita: data.priorita,
+    stato: data.stato,
+    tags: parseMultiValue(data.tagsInput),
+    allegati: parseMultiValue(data.allegatiInput)
   });
 
+  const getFriendlyError = (err: unknown) => {
+    if (err instanceof TypeError) {
+      return 'NetworkError: impossibile contattare il server. Verifica connessione e backend attivo.';
+    }
+    return 'Si è verificato un errore inatteso. Riprova tra qualche secondo.';
+  };
+
+  const formatDate = (dateIso?: string | null) => {
+    if (!dateIso) {
+      return '-';
+    }
+    const date = new Date(dateIso);
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
+    return date.toLocaleString('it-IT');
+  };
+
   useEffect(() => {
+    setUserRoles(getRolesFromToken());
+
     const fetchAvvisi = async () => {
       try {
         setLoading(true);
         setError(null);
+        setNetworkError(null);
 
-        const response = await fetch(`${getBaseUrl()}/avvisi`, { cache: 'no-store' });
+        const response = await fetchWithAuth(`${getBaseUrl()}/avvisi`, {
+          method: 'GET',
+          cache: 'no-store'
+        });
 
         if (!response.ok) {
           throw new Error(`Errore del server: ${response.status}`);
         }
 
         const data = await response.json();
-        setAvvisi(data);
+        const normalized = Array.isArray(data) ? data.map(normalizeAvviso) : [];
+        setAvvisi(normalized);
       } catch (err) {
         console.error('Errore di connessione:', err);
-        setError('Impossibile contattare il server. Verifica che il backend Spring Boot sia acceso.');
+        setNetworkError(getFriendlyError(err));
       } finally {
         setLoading(false);
       }
@@ -59,35 +196,156 @@ export default function AvvisiPage() {
     fetchAvvisi();
   }, []);
 
-  const segnaTuttiComeLetti = () => {
-    setAvvisi(avvisi.map((avviso) => ({ ...avviso, letto: true })));
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const nuovoAvviso: Avviso = {
-      id: Date.now(),
-      titolo: formData.titolo,
-      categoria: formData.categoria,
-      data: new Date().toLocaleDateString('it-IT').replace(/\//g, '-'),
-      letto: false,
-      descrizione: formData.descrizione
-    };
+    try {
+      setIsSaving(true);
+      setError(null);
+      setNetworkError(null);
 
-    setAvvisi([nuovoAvviso, ...avvisi]);
-    setIsModalOpen(false);
-    setFormData({ titolo: '', descrizione: '', categoria: 'Comunicazione - Circolare' });
+      const payload = buildPayload(formData);
+      const response = await fetchWithAuth(`${getBaseUrl()}/avvisi`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('FORBIDDEN_CREATE_AVVISO');
+        }
+        throw new Error(`Errore del server: ${response.status}`);
+      }
+
+      const nuovoAvviso: Avviso = normalizeAvviso(await response.json());
+      setAvvisi((prev) => [nuovoAvviso, ...prev]);
+      setIsModalOpen(false);
+      setFormData(initialFormData);
+    } catch (err) {
+      console.error('Errore creazione avviso:', err);
+      if (err instanceof Error && err.message === 'FORBIDDEN_CREATE_AVVISO') {
+        setError('Permesso negato (403): accedi con un utente VICEPRESIDENZA per creare avvisi.');
+        return;
+      }
+      setNetworkError(getFriendlyError(err));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const apriModificaAvviso = (avviso: Avviso) => {
+    setSelectedAvviso(avviso);
+    setEditFormData({
+      titolo: avviso.titolo,
+      contenuto: avviso.contenuto,
+      autore: avviso.autore,
+      categoria: avviso.categoria || 'Generale',
+      priorita: avviso.priorita,
+      stato: avviso.stato,
+      tagsInput: (avviso.tags || []).join(', '),
+      allegatiInput: (avviso.allegati || []).join(', ')
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const chiudiModificaAvviso = () => {
+    setIsEditModalOpen(false);
+    setSelectedAvviso(null);
+  };
+
+  const apriDettaglioAvviso = (avviso: Avviso) => {
+    setSelectedViewAvviso(avviso);
+    setIsViewModalOpen(true);
+  };
+
+  const chiudiDettaglioAvviso = () => {
+    setIsViewModalOpen(false);
+    setSelectedViewAvviso(null);
+  };
+
+  const salvaModificaAvviso = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!selectedAvviso) {
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      setError(null);
+      setNetworkError(null);
+
+      const payload = buildPayload(editFormData);
+      const response = await fetchWithAuth(`${getBaseUrl()}/avvisi/${selectedAvviso.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Errore del server: ${response.status}`);
+      }
+
+      const aggiornato: Avviso = normalizeAvviso(await response.json());
+      setAvvisi((prev) => prev.map((item) => (item.id === aggiornato.id ? aggiornato : item)));
+      chiudiModificaAvviso();
+    } catch (err) {
+      console.error('Errore modifica avviso:', err);
+      setNetworkError(getFriendlyError(err));
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const eliminaAvvisoSelezionato = async () => {
+    if (!selectedAvviso) {
+      return;
+    }
+
+    const confermato = window.confirm('Confermi l\'eliminazione dell\'avviso selezionato?');
+    if (!confermato) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setError(null);
+      setNetworkError(null);
+
+      const response = await fetchWithAuth(`${getBaseUrl()}/avvisi/${selectedAvviso.id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error(`Errore del server: ${response.status}`);
+      }
+
+      setAvvisi((prev) => prev.filter((item) => item.id !== selectedAvviso.id));
+      chiudiModificaAvviso();
+    } catch (err) {
+      console.error('Errore eliminazione avviso:', err);
+      setNetworkError(getFriendlyError(err));
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const avvisiFiltrati = avvisi.filter((avviso) => {
-    const matchRicerca = avviso.titolo?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchCategoria = filtroCategoria === 'Tutte' || avviso.categoria?.includes(filtroCategoria);
-    return matchRicerca && matchCategoria;
+    const ricerca = searchTerm.trim().toLowerCase();
+    const matchRicerca =
+      avviso.titolo.toLowerCase().includes(ricerca) ||
+      avviso.contenuto.toLowerCase().includes(ricerca) ||
+      avviso.autore.toLowerCase().includes(ricerca) ||
+      (avviso.categoria || '').toLowerCase().includes(ricerca) ||
+      (avviso.tags || []).some((tag) => tag.toLowerCase().includes(ricerca));
+    const matchPriorita = filtroPriorita === 'TUTTE' || avviso.priorita === filtroPriorita;
+    return matchRicerca && matchPriorita;
   });
-
-  const daLeggere = avvisiFiltrati.filter((a) => !a.letto);
-  const tuttiGliAltri = avvisiFiltrati.filter((a) => a.letto);
 
   return (
     <div className="p-8 max-w-6xl mx-auto relative">
@@ -96,12 +354,6 @@ export default function AvvisiPage() {
           <h1 className="text-3xl font-bold text-gray-800">Avvisi</h1>
           <p className="text-gray-500 mt-1">Istituto C. GRASSI - A.S. 2025/2026</p>
         </div>
-        <button
-          onClick={segnaTuttiComeLetti}
-          className="text-green-600 hover:text-green-700 font-semibold flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg transition"
-        >
-          <span>✓</span> Segna come già letti
-        </button>
       </div>
 
       {error && (
@@ -111,11 +363,18 @@ export default function AvvisiPage() {
         </div>
       )}
 
+      {networkError && (
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 shadow-sm">
+          <p className="font-bold flex items-center gap-2">⚠️ NetworkError</p>
+          <p className="text-sm mt-1">{networkError}</p>
+        </div>
+      )}
+
       <div className="bg-gray-50 p-4 rounded-xl mb-8 flex flex-wrap gap-4 items-center border border-gray-100 shadow-sm">
         <div className="flex-1 min-w-[250px]">
           <input
             type="text"
-            placeholder="Cerca nella bacheca..."
+            placeholder="Cerca titolo, contenuto, autore, categoria o tag..."
             className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -125,16 +384,16 @@ export default function AvvisiPage() {
         <div className="w-64">
           <select
             className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-            value={filtroCategoria}
-            onChange={(e) => setFiltroCategoria(e.target.value)}
+            value={filtroPriorita}
+            onChange={(e) => setFiltroPriorita(e.target.value as 'TUTTE' | PrioritaAvviso)}
           >
-            <option value="Tutte">Tipologia comunicazione</option>
-            <option value="Comunicazione - Circolare">Circolari</option>
-            <option value="Comunicazione - Scuola/famiglia">Scuola/Famiglia</option>
+            <option value="TUTTE">Tutte le priorità</option>
+            <option value="NORMALE">Normale</option>
+            <option value="ALTA">Alta</option>
           </select>
         </div>
 
-        {userRole === 'vicepreside' && (
+        {canManageAvvisi && (
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow transition"
@@ -148,78 +407,196 @@ export default function AvvisiPage() {
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
           {[1, 2].map((n) => (
-            <div key={n} className="h-16 bg-gray-100 rounded-lg w-full"></div>
+            <div key={n} className="h-28 bg-gray-100 rounded-lg w-full"></div>
           ))}
         </div>
       ) : (
         !error && (
           <div className="space-y-8">
-            {avvisi.length === 0 && (
+            {avvisiFiltrati.length === 0 && (
               <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
                 <p className="text-gray-500 text-lg">Nessun avviso presente nel database.</p>
-                <p className="text-gray-400 text-sm mt-2">Usa il tasto "+ Nuovo Avviso" per crearne uno.</p>
+                <p className="text-gray-400 text-sm mt-2">Usa il tasto &quot;+ Nuovo Avviso&quot; per crearne uno.</p>
               </div>
             )}
 
-            {daLeggere.length > 0 && (
-              <div>
-                <h2 className="text-lg font-bold text-white bg-yellow-500 px-4 py-2 rounded-t-lg inline-block">Da leggere</h2>
-                <div className="bg-white border border-yellow-200 rounded-b-lg rounded-tr-lg shadow-sm overflow-hidden">
-                  {daLeggere.map((avviso) => (
-                    <div
-                      key={avviso.id}
-                      className="flex items-center justify-between p-4 border-b last:border-0 hover:bg-yellow-50 transition"
-                    >
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
-                        <div>
-                          <p className="font-bold text-gray-800">{avviso.titolo}</p>
-                          <p className="text-sm text-gray-500">{avviso.categoria}</p>
-                        </div>
-                      </div>
-                      <div className="text-sm font-medium text-gray-600 w-32 text-center">{avviso.data}</div>
-                      <button className="text-blue-600 hover:text-blue-800 flex flex-col items-center justify-center p-2">
-                        <span className="text-xl">👁️</span>
-                        <span className="text-xs font-semibold">Visualizza</span>
-                      </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {avvisiFiltrati.map((avviso) => (
+                <article
+                  key={avviso.id}
+                  className={`rounded-xl border p-5 shadow-sm transition hover:shadow-md bg-white ${
+                    avviso.priorita === 'ALTA' ? 'border-red-300 bg-red-50/40' : 'border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-bold text-gray-800 leading-tight">{avviso.titolo}</h3>
+                    <div className="flex gap-1">
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          avviso.priorita === 'ALTA' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {avviso.priorita}
+                      </span>
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          avviso.stato === 'BOZZA' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                        }`}
+                      >
+                        {avviso.stato}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  </div>
 
-            {tuttiGliAltri.length > 0 && (
-              <div>
-                <h2 className="text-lg font-bold text-white bg-gray-400 px-4 py-2 rounded-t-lg inline-block">
-                  Tutte le comunicazioni
-                </h2>
-                <div className="bg-white border border-gray-200 rounded-b-lg rounded-tr-lg shadow-sm overflow-hidden">
-                  {tuttiGliAltri.map((avviso) => (
-                    <div
-                      key={avviso.id}
-                      className="flex items-center justify-between p-4 border-b last:border-0 hover:bg-gray-50 transition opacity-80 hover:opacity-100"
-                    >
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center">
-                          <div className="w-2.5 h-2.5 bg-gray-400 rounded-sm"></div>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-700">{avviso.titolo}</p>
-                          <p className="text-sm text-gray-500">{avviso.categoria}</p>
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-600 w-32 text-center">{avviso.data}</div>
-                      <button className="text-gray-500 hover:text-blue-600 flex flex-col items-center justify-center p-2">
-                        <span className="text-xl">👁️</span>
-                        <span className="text-xs font-semibold">Visualizza</span>
+                  <p className="text-xs text-gray-500 mt-2">Categoria: {avviso.categoria || 'Generale'}</p>
+                  {(avviso.tags || []).length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {avviso.tags.map((tag) => (
+                        <span key={`${avviso.id}-${tag}`} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-sm text-gray-700 mt-3 whitespace-pre-wrap">{avviso.contenuto}</p>
+
+                  {(avviso.allegati || []).length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Allegati</p>
+                      <ul className="space-y-1">
+                        {avviso.allegati.map((allegato) => (
+                          <li key={`${avviso.id}-${allegato}`}>
+                            <a
+                              href={toOpenableUrl(allegato)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-700 underline break-all"
+                            >
+                              {allegato}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="mt-4 text-xs text-gray-500 space-y-1">
+                    <p>Autore: {avviso.autore}</p>
+                    <p>Creato: {formatDate(avviso.dataCreazione)} {avviso.creatoDa ? `• da ${avviso.creatoDa}` : ''}</p>
+                    <p>
+                      Aggiornato: {formatDate(avviso.dataAggiornamento || avviso.dataCreazione)}
+                      {avviso.aggiornatoDa ? ` • da ${avviso.aggiornatoDa}` : ''}
+                    </p>
+                  </div>
+
+                  {canManageAvvisi && (
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button
+                        onClick={() => apriDettaglioAvviso(avviso)}
+                        className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium"
+                      >
+                        Apri
+                      </button>
+                      <button
+                        onClick={() => apriModificaAvviso(avviso)}
+                        className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium"
+                      >
+                        Modifica
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  )}
+
+                  {!canManageAvvisi && (
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button
+                        onClick={() => apriDettaglioAvviso(avviso)}
+                        className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium"
+                      >
+                        Apri
+                      </button>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
           </div>
         )
+      )}
+
+      {isViewModalOpen && selectedViewAvviso && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-500/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl border border-gray-100 max-h-[85vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Dettaglio Avviso</h2>
+              <button onClick={chiudiDettaglioAvviso} className="text-gray-400 hover:text-gray-600 text-2xl">
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-gray-900">{selectedViewAvviso.titolo}</h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{selectedViewAvviso.priorita}</span>
+                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{selectedViewAvviso.stato}</span>
+                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{selectedViewAvviso.categoria || 'Generale'}</span>
+              </div>
+
+              {(selectedViewAvviso.tags || []).length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {selectedViewAvviso.tags.map((tag) => (
+                    <span key={`${selectedViewAvviso.id}-view-${tag}`} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="pt-2 border-t">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedViewAvviso.contenuto}</p>
+              </div>
+
+              {(selectedViewAvviso.allegati || []).length > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Allegati e link</p>
+                  <ul className="space-y-1">
+                    {selectedViewAvviso.allegati.map((allegato) => (
+                      <li key={`${selectedViewAvviso.id}-view-file-${allegato}`}>
+                        <a
+                          href={toOpenableUrl(allegato)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-700 underline break-all"
+                        >
+                          {allegato}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="pt-2 border-t text-xs text-gray-500 space-y-1">
+                <p>Autore: {selectedViewAvviso.autore}</p>
+                <p>Creato: {formatDate(selectedViewAvviso.dataCreazione)} {selectedViewAvviso.creatoDa ? `• da ${selectedViewAvviso.creatoDa}` : ''}</p>
+                <p>
+                  Aggiornato: {formatDate(selectedViewAvviso.dataAggiornamento || selectedViewAvviso.dataCreazione)}
+                  {selectedViewAvviso.aggiornatoDa ? ` • da ${selectedViewAvviso.aggiornatoDa}` : ''}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                type="button"
+                onClick={chiudiDettaglioAvviso}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition"
+              >
+                Chiudi
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {isModalOpen && (
@@ -245,16 +622,74 @@ export default function AvvisiPage() {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priorità</label>
+                  <select
+                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    value={formData.priorita}
+                    onChange={(e) => setFormData({ ...formData, priorita: e.target.value as PrioritaAvviso })}
+                  >
+                    <option value="NORMALE">Normale</option>
+                    <option value="ALTA">Alta</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stato</label>
+                  <select
+                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    value={formData.stato}
+                    onChange={(e) => setFormData({ ...formData, stato: e.target.value as StatoAvviso })}
+                  >
+                    <option value="PUBBLICATO">Pubblicato</option>
+                    <option value="BOZZA">Bozza</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
-                <select
-                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Es. Didattica"
                   value={formData.categoria}
                   onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-                >
-                  <option value="Comunicazione - Circolare">Circolare</option>
-                  <option value="Comunicazione - Scuola/famiglia">Scuola/Famiglia</option>
-                </select>
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tag (separati da virgola)</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Es. consiglio-classe, urgente"
+                  value={formData.tagsInput}
+                  onChange={(e) => setFormData({ ...formData, tagsInput: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Autore</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Es. La Direzione"
+                  value={formData.autore}
+                  onChange={(e) => setFormData({ ...formData, autore: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Allegati (URL separati da virgola, facoltativo)</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="https://...pdf, https://...jpg"
+                  value={formData.allegatiInput}
+                  onChange={(e) => setFormData({ ...formData, allegatiInput: e.target.value })}
+                />
               </div>
 
               <div>
@@ -262,10 +697,10 @@ export default function AvvisiPage() {
                 <textarea
                   required
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                  rows={3}
+                  rows={4}
                   placeholder="Scrivi il contenuto dell'avviso..."
-                  value={formData.descrizione}
-                  onChange={(e) => setFormData({ ...formData, descrizione: e.target.value })}
+                  value={formData.contenuto}
+                  onChange={(e) => setFormData({ ...formData, contenuto: e.target.value })}
                 ></textarea>
               </div>
 
@@ -279,9 +714,138 @@ export default function AvvisiPage() {
                 </button>
                 <button
                   type="submit"
+                  disabled={isSaving}
                   className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition shadow"
                 >
-                  Pubblica
+                  {isSaving ? 'Pubblicazione...' : 'Pubblica'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isEditModalOpen && selectedAvviso && canManageAvvisi && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-500/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-xl border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Modifica Comunicazione</h2>
+              <button onClick={chiudiModificaAvviso} className="text-gray-400 hover:text-gray-600 text-2xl">
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={salvaModificaAvviso} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Titolo Comunicazione</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={editFormData.titolo}
+                  onChange={(e) => setEditFormData({ ...editFormData, titolo: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priorità</label>
+                  <select
+                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    value={editFormData.priorita}
+                    onChange={(e) => setEditFormData({ ...editFormData, priorita: e.target.value as PrioritaAvviso })}
+                  >
+                    <option value="NORMALE">Normale</option>
+                    <option value="ALTA">Alta</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stato</label>
+                  <select
+                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    value={editFormData.stato}
+                    onChange={(e) => setEditFormData({ ...editFormData, stato: e.target.value as StatoAvviso })}
+                  >
+                    <option value="PUBBLICATO">Pubblicato</option>
+                    <option value="BOZZA">Bozza</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={editFormData.categoria}
+                  onChange={(e) => setEditFormData({ ...editFormData, categoria: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tag (separati da virgola)</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={editFormData.tagsInput}
+                  onChange={(e) => setEditFormData({ ...editFormData, tagsInput: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Autore</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={editFormData.autore}
+                  onChange={(e) => setEditFormData({ ...editFormData, autore: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Allegati (URL separati da virgola, facoltativo)</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={editFormData.allegatiInput}
+                  onChange={(e) => setEditFormData({ ...editFormData, allegatiInput: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contenuto</label>
+                <textarea
+                  required
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  rows={4}
+                  value={editFormData.contenuto}
+                  onChange={(e) => setEditFormData({ ...editFormData, contenuto: e.target.value })}
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={chiudiModificaAvviso}
+                  className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition shadow"
+                >
+                  {isUpdating ? 'Salvataggio...' : 'Salva modifiche'}
+                </button>
+                <button
+                  type="button"
+                  onClick={eliminaAvvisoSelezionato}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg font-medium transition"
+                >
+                  {isDeleting ? 'Eliminazione...' : 'Elimina'}
                 </button>
               </div>
             </form>
