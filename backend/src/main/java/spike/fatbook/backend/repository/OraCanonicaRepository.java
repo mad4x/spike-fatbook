@@ -14,7 +14,7 @@ public interface OraCanonicaRepository extends JpaRepository<OraCanonica, Long> 
     // Recupera tutte le ore di tutte le classi dove insegna un determinato docente
     @Query("""
     SELECT d.oraCanonica
-    FROM Docente_OraCanonica d
+    FROM DocenteOraCanonica d
     WHERE d.docente.utente.email = :email
     """)
     List<OraCanonica> findOreByDocenteEmail(@Param("email") String email);
