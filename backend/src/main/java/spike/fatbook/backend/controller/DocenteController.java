@@ -3,6 +3,7 @@ package spike.fatbook.backend.controller;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,7 @@ public class DocenteController {
     private final DocenteService docenteService;
 
     @GetMapping()
+    @PreAuthorize("hasRole('VICEPRESIDE')")
     public ResponseEntity<@NonNull List<DocenteResponseDTO>> getAllDocenti() {
         List<DocenteResponseDTO> listaDocenti = docenteService.getAllDocenti();
         return ResponseEntity.ok(listaDocenti);
