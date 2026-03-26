@@ -1,4 +1,4 @@
-import { AvvisoFormData, PrioritaAvviso, StatoAvviso } from '@/constants/types';
+import { AvvisoFormData, PrioritaAvviso } from '@/constants/types';
 
 interface AvvisoFormModalProps {
   isOpen: boolean;
@@ -78,19 +78,7 @@ export function AvvisoFormModal({
                 <option value="ALTA">Alta</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stato</label>
-              <select
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                value={formData.stato}
-                onChange={(event) =>
-                  onFormDataChange({ ...formData, stato: event.target.value as StatoAvviso })
-                }
-              >
-                <option value="PUBBLICATO">Pubblicato</option>
-                <option value="BOZZA">Bozza</option>
-              </select>
-            </div>
+            <div />
           </div>
 
           <div>
@@ -205,6 +193,18 @@ export function AvvisoFormModal({
               className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition"
             >
               Annulla
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                onFormDataChange({
+                  ...formData,
+                  stato: formData.stato === 'PUBBLICATO' ? 'BOZZA' : 'PUBBLICATO'
+                })
+              }
+              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition"
+            >
+              Stato: {formData.stato === 'PUBBLICATO' ? 'Pubblicato' : 'Bozza'}
             </button>
             <button
               type="submit"

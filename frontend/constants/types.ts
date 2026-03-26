@@ -7,6 +7,46 @@ export interface DocenteResponseDTO {
     materie: string[];
 }
 
+export type TipologiaAssenza = 'MALATTIA' | 'PERMESSO' | 'ALTRO';
+export type FiltroTipologiaAssenza = 'TUTTE' | TipologiaAssenza;
+
+export interface Assenza {
+    id: number;
+    docenteId: number | null;
+    docenteNome: string;
+    docenteCognome: string;
+    docenteEmail: string;
+    dataInizio: string;
+    dataFine: string;
+    tipologia: TipologiaAssenza;
+    note: string;
+    oreScoperte: number;
+}
+
+export interface AssenzaFormData {
+    docenteId: number | null;
+    dataInizio: string;
+    dataFine: string;
+    tipologia: TipologiaAssenza;
+    note: string;
+}
+
+export interface AssenzaWritePayload {
+    docenteId: number;
+    dataInizio: string;
+    dataFine: string;
+    tipologia: TipologiaAssenza;
+    note: string;
+}
+
+export const ASSENZA_INITIAL_FORM_DATA: AssenzaFormData = {
+    docenteId: null,
+    dataInizio: '',
+    dataFine: '',
+    tipologia: 'MALATTIA',
+    note: ''
+};
+
 export type PrioritaAvviso = 'NORMALE' | 'ALTA';
 export type StatoAvviso = 'BOZZA' | 'PUBBLICATO';
 export type FiltroPrioritaAvviso = 'TUTTE' | PrioritaAvviso;
