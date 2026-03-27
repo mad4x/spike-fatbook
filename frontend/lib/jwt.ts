@@ -91,10 +91,12 @@ export const fetchWithAuth =
 
     // Se il token è scaduto o invalido, facciamo pulizia e cacciamo l'utente al login
     if (response.status === 401) {
+        console.warn("Token scaduto o non valido. Logout forzato.");
         if (typeof window !== "undefined") {
             localStorage.removeItem("token");
             window.location.href = "/sign-in";
         }
+        throw new Error("JWT_EXPIRED");
     }
 
     return response;

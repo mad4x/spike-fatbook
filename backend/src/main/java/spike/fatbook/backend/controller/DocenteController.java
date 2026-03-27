@@ -4,9 +4,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import spike.fatbook.backend.dto.DocenteResponseDTO;
 import spike.fatbook.backend.service.DocenteService;
 
@@ -24,5 +22,12 @@ public class DocenteController {
     public ResponseEntity<@NonNull List<DocenteResponseDTO>> getAllDocenti() {
         List<DocenteResponseDTO> listaDocenti = docenteService.getAllDocenti();
         return ResponseEntity.ok(listaDocenti);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('VICEPRESIDE')")
+    public ResponseEntity<@NonNull Void> deleteDocente(@PathVariable Long id) {
+        docenteService.deleteDocente(id);
+        return ResponseEntity.noContent().build(); // Il 204 No Content è lo standard REST perfetto per una DELETE
     }
 }

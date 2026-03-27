@@ -86,4 +86,19 @@ public class DocenteService {
                 })
                 .toList();
     }
+
+
+    @Transactional
+    public void deleteDocente(Long id) {
+        Docente docente = docenteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Docente non trovato"));
+
+        Utente utenteCollegato = docente.getUtente();
+        // Disabilito l'utente così non fa più login
+        if (utenteCollegato != null) {
+            utenteCollegato.setEliminato(true);
+            utenteRepository.save(utenteCollegato);
+        }
+        docenteRepository.deleteById(id);
+    }
 }

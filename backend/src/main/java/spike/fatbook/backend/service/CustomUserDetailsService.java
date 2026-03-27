@@ -33,6 +33,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return User.builder()
                 .username(utente.getEmail())
                 .password("{noop}placeholder") // Meglio mettere questo per evitare errori del builder
+                .disabled(utente.isEliminato())
                 .authorities(ruoli.toArray(new String[0]))
                 .build();
     }
