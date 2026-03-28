@@ -21,9 +21,7 @@ const GestioneDocenti = () => {
     });
     const [error, setError] = useState("");
 
-    // la definiamo fuori da useEffect perchè la usiamo più volte
-    // c'è useCallback per non doverla ricaricare ogni volta per intero
-    const fetchDocenti = useCallback(async () => {
+    const fetchDocenti = async () => {
         try {
             const response = await fetchWithAuth(`${getBaseUrl()}/docenti`);
             if (response.ok) {
@@ -33,11 +31,12 @@ const GestioneDocenti = () => {
         } catch (error) {
             console.error("Errore nel caricamento dei docenti", error);
         }
-    }, []);
+    };
 
     useEffect(() => {
         const fetchMaterie = async () => {
             try {
+                // Anche qui, assicurati che l'URL sia corretto rispetto al backend
                 const response = await fetchWithAuth(`${getBaseUrl()}/materie`);
                 if (response.ok) {
                     const data = await response.json();
@@ -48,13 +47,10 @@ const GestioneDocenti = () => {
             }
         };
 
-        const loadInitialData = async () => {
-            await fetchMaterie();
-            await fetchDocenti();
-        };
-
-        loadInitialData();
-    }, [fetchDocenti]);
+        // Chiamiamo entrambe le funzioni al caricamento
+        fetchMaterie();
+        fetchDocenti();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
