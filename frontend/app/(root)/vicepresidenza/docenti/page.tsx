@@ -7,6 +7,7 @@ import { getBaseUrl } from "@/lib/api-url";
 import { fetchWithAuth } from "@/lib/jwt";
 import TabellaDocenti from "@/components/TabellaDocenti";
 import { DocenteResponseDTO } from "@/constants/types";
+import ModalConferma from "@/components/ModalConferma";
 
 const GestioneDocenti = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,6 +21,8 @@ const GestioneDocenti = () => {
         materieIds: [] as number[]
     });
     const [error, setError] = useState("");
+    const [docenteDaEliminare, setDocenteDaEliminare] = useState<number | null>(null);
+    const [deleteError, setDeleteError] = useState("");
 
     const fetchDocenti = async () => {
         try {
@@ -98,23 +101,20 @@ const GestioneDocenti = () => {
         }
     };
 
-    const handleElimina = async (id: number) => {
-        const conferma = window.confirm("Sei sicuro di voler eliminare questo docente?");
-        if (!conferma) return;
-
+    const confermaEliminazione = async () => {
+        if (!docenteDaEliminare) return;
         try {
-            const response = await fetchWithAuth(`${getBaseUrl()}/docenti/${id}`, {
+            const response = await fetchWithAuth(`${getBaseUrl()}/docenti/${docenteDaEliminare}`, {
                 method: "DELETE",
             });
-
             if (response.ok) {
+                setDocenteDaEliminare(null);
                 await fetchDocenti();
             } else {
-                alert("Impossibile eliminare il docente. Verifica i permessi o riprova.");
+                setDeleteError("Impossibile eliminare il docente. Verifica i permessi o riprova.");
             }
         } catch (error) {
-            console.error("Errore durante l'eliminazione:", error);
-            alert("Errore di rete durante l'eliminazione.");
+            setDeleteError("Si è verificato un errore di rete.");
         }
     };
 
@@ -134,7 +134,10 @@ const GestioneDocenti = () => {
                 </button>
             </div>
 
-            <TabellaDocenti docenti={docenti} onElimina={handleElimina}/>
+            <TabellaDocenti
+                docenti={docenti}
+                onElimina={(id) => { setDocenteDaEliminare(id); setDeleteError(""); }}
+            />
 
             <Modal
                 isOpen={isModalOpen}
@@ -209,6 +212,16 @@ const GestioneDocenti = () => {
 
                 </form>
             </Modal>
+
+            <ModalConferma
+                isOpen={docenteDaEliminare !== null}
+                onClose={() => { setDocenteDaEliminare(null); setDeleteError(""); }}
+                onConfirm={confermaEliminazione}
+                titolo="Disabilita Docente"
+                messaggio="Questa operazione revocherà l'accesso al docente. I dati storici verranno conservati."
+                testoPulsante="Sì, Disabilita"
+                errore={deleteError}
+            />
         </div>
     );
 }
