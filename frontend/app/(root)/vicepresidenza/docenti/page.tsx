@@ -36,7 +36,6 @@ const GestioneDocenti = () => {
     useEffect(() => {
         const fetchMaterie = async () => {
             try {
-                // Anche qui, assicurati che l'URL sia corretto rispetto al backend
                 const response = await fetchWithAuth(`${getBaseUrl()}/materie`);
                 if (response.ok) {
                     const data = await response.json();
@@ -47,9 +46,15 @@ const GestioneDocenti = () => {
             }
         };
 
-        // Chiamiamo entrambe le funzioni al caricamento
-        fetchMaterie();
-        fetchDocenti();
+        const loadInitialData = async () => {
+            await fetchMaterie();
+            await fetchDocenti();
+        };
+
+        loadInitialData();
+
+        // Il nostro scudo magico anti-loop:
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,6 +98,26 @@ const GestioneDocenti = () => {
         }
     };
 
+    const handleElimina = async (id: number) => {
+        const conferma = window.confirm("Sei sicuro di voler eliminare questo docente?");
+        if (!conferma) return;
+
+        try {
+            const response = await fetchWithAuth(`${getBaseUrl()}/docenti/${id}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                await fetchDocenti();
+            } else {
+                alert("Impossibile eliminare il docente. Verifica i permessi o riprova.");
+            }
+        } catch (error) {
+            console.error("Errore durante l'eliminazione:", error);
+            alert("Errore di rete durante l'eliminazione.");
+        }
+    };
+
     return (
         <div className="p-8 max-w-5xl mx-auto w-full h-full">
             <div className="flex justify-between items-center mb-8">
@@ -109,7 +134,7 @@ const GestioneDocenti = () => {
                 </button>
             </div>
 
-            <TabellaDocenti docenti={docenti} />
+            <TabellaDocenti docenti={docenti} onElimina={handleElimina}/>
 
             <Modal
                 isOpen={isModalOpen}

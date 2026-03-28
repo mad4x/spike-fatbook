@@ -3,10 +3,10 @@ import {DocenteResponseDTO} from "@/constants/types";
 
 interface TabellaDocentiProps {
     docenti: DocenteResponseDTO[];
-    // onElimina: (id: number) => void; // <-- Già pronto per il futuro!
+    onElimina: (id: number) => void;
 }
 
-const TabellaDocenti = ({ docenti }: TabellaDocentiProps)=> {
+const TabellaDocenti = ({ docenti, onElimina }: TabellaDocentiProps)=> {
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <table className="w-full text-left">
@@ -56,7 +56,7 @@ const TabellaDocenti = ({ docenti }: TabellaDocentiProps)=> {
                                 <button
                                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                     title="Elimina docente"
-                                    // onClick={() => onElimina(docente.id)}
+                                    onClick={() => onElimina(docente.id)}
                                 >
                                     <Trash2 size={18} />
                                 </button>
