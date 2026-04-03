@@ -33,7 +33,7 @@ public class Docente {
     private Utente utente;
 
     @Setter
-    @Column(name = "eliminato", nullable = false)
+    @Column(name = "eliminato", nullable = false, columnDefinition = "boolean default false")
     private boolean eliminato = false;
 
     @OneToMany(mappedBy = "docente", cascade = CascadeType.ALL, orphanRemoval = true)

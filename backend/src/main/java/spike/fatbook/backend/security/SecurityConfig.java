@@ -47,6 +47,10 @@ public class SecurityConfig {
                 // 2. Regole di accesso
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Lascia passare tutti per il login/registrazione
+                    .requestMatchers(HttpMethod.GET, "/api/assenze/**").hasAnyRole("DOCENTE", "VICEPRESIDE", "VICEPRESIDENZA", "ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/assenze/**").authenticated()
+                    .requestMatchers(HttpMethod.PUT, "/api/assenze/**").authenticated()
+                    .requestMatchers(HttpMethod.DELETE, "/api/assenze/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/avvisi/**").hasAnyRole("DOCENTE", "VICEPRESIDE", "VICEPRESIDENZA", "ADMIN")
                     .requestMatchers(HttpMethod.POST, "/api/avvisi/**").hasAnyRole("VICEPRESIDE", "VICEPRESIDENZA", "ADMIN")
                     .requestMatchers(HttpMethod.PUT, "/api/avvisi/**").hasAnyRole("VICEPRESIDE", "VICEPRESIDENZA", "ADMIN")

@@ -31,7 +31,7 @@ public class Utente {
     private String email;
 
     @Setter
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean eliminato = false;
 
     @Setter

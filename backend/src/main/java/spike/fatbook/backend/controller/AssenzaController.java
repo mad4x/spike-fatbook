@@ -1,30 +1,49 @@
 package spike.fatbook.backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import spike.fatbook.backend.dto.AssenzaRequestDTO;
-import spike.fatbook.backend.model.Assenza;
+import spike.fatbook.backend.dto.AssenzaResponseDTO;
 import spike.fatbook.backend.service.AssenzaService;
 
-import java.security.Principal;
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/assenza")
+@RequestMapping("/api/assenze")
 @RequiredArgsConstructor
 public class AssenzaController {
 
     private final AssenzaService assenzaService;
 
-    @PostMapping
-    public ResponseEntity<?> creaAssenza(@RequestBody AssenzaRequestDTO dto, Principal principal) {
-        // principal.getName() restituisce il "subject" del JWT, che di solito è l'email!
-        String emailVicepreside = principal.getName();
+    @GetMapping
+    public ResponseEntity<List<AssenzaResponseDTO>> getAssenze(
+            @RequestParam(name = "data", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate data
+    ) {
+        return ResponseEntity.ok(assenzaService.getAssenze(data));
+    }
 
-        Assenza salvata = assenzaService.registraAssenza(dto, emailVicepreside);
-        return ResponseEntity.ok(salvata);
+    @PostMapping
+    public ResponseEntity<AssenzaResponseDTO> creaAssenza(@RequestBody AssenzaRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(assenzaService.registraAssenza(dto));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AssenzaResponseDTO> aggiornaAssenza(
+            @PathVariable Long id,
+            @RequestBody AssenzaRequestDTO dto
+    ) {
+        return ResponseEntity.ok(assenzaService.aggiornaAssenza(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminaAssenza(@PathVariable Long id) {
+        assenzaService.eliminaAssenza(id);
+        return ResponseEntity.noContent().build();
     }
 }
