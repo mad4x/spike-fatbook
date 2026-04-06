@@ -7,5 +7,6 @@ public record AssenzaRequestDTO(
     LocalDate data,
     Integer ora,
     String motivazione,
-    boolean giornaliera
+    Boolean giornaliera,
+    Long uscitaDidatticaId
 ) {}
