@@ -69,7 +69,31 @@ export default function OrarioPage() {
 					throw new Error("Formato risposta non valido");
 				}
 
-				setRawEntries(data.map(normalizeOrarioEntry));
+				const flattened = data.flatMap((item) => {
+					if (typeof item !== "object" || item === null) {
+						return [];
+					}
+
+					const group = item as Record<string, unknown>;
+					const ore = Array.isArray(group.ore) ? group.ore : [];
+					if (ore.length === 0) {
+						return [group];
+					}
+
+					return ore.map((ora) => {
+						if (typeof ora !== "object" || ora === null) {
+							return ora;
+						}
+
+						return {
+							...(ora as Record<string, unknown>),
+							classeId: group.classeId,
+							classe: group.classe,
+						};
+					});
+				});
+
+				setRawEntries(flattened.map(normalizeOrarioEntry));
 			} catch (e) {
 				const message = e instanceof Error ? e.message : "Errore sconosciuto";
 				setError(message);
@@ -125,9 +149,6 @@ export default function OrarioPage() {
 		<section className="mx-4 my-6 space-y-4">
 			<header className="space-y-1">
 				<h1 className="text-2xl font-bold text-slate-900">Orari classi</h1>
-				<p className="text-sm text-slate-600">
-					Tabella con 8 ore per giorno, da lunedi a venerdi. Cerca una classe o apri il dettaglio.
-				</p>
 			</header>
 
 			<div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-[2fr_1fr_auto]">
@@ -203,7 +224,7 @@ export default function OrarioPage() {
 
 								{group.classId !== null ? (
 									<Button asChild size="sm" variant="outline">
-										<Link href={`/orario/${group.classId}`} target="_blank" rel="noreferrer">
+										<Link href={`/orario/${group.classId}`} rel="noreferrer">
 											Apri dettaglio
 										</Link>
 									</Button>

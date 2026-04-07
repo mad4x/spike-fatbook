@@ -6,8 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import spike.fatbook.backend.dto.OrarioClasseCompletoDTO;
+import spike.fatbook.backend.dto.OrarioDettaglioDTO;
 import spike.fatbook.backend.dto.OrarioSinteticoDTO;
-import spike.fatbook.backend.model.OraCanonica;
 import spike.fatbook.backend.service.OrarioService;
 
 @RestController
@@ -22,12 +23,22 @@ public class OrarioController {
     }
 
     /**
-     * GET /api/orario?docenteId=1
-     * Consegna la lista sintetica delle ore relative a un docente
+     * GET /api/orario/
+     * Restituisce, per ogni classe in cui il docente insegna almeno un'ora,
+     * l'orario sintetico completo della classe.
      */
-    @GetMapping
+    @GetMapping({"", "/"})
+    public ResponseEntity<List<OrarioClasseCompletoDTO>> getOrarioCompletoClassi(Authentication auth) {
+        return ResponseEntity.ok(orarioService.getOrarioCompletoClassiByDocente(auth.getName()));
+    }
+
+    /**
+     * GET /api/orario/weekly
+     * Consegna la lista sintetica delle ore relative a un docente settimanale
+     */
+    @GetMapping("/weekly")
     public ResponseEntity<List<OrarioSinteticoDTO>> getOrario(Authentication auth) {
-        return ResponseEntity.ok(orarioService.getOrarioByDocente(auth.getName()));
+        return ResponseEntity.ok(orarioService.getOrarioWeeklyByDocente(auth.getName()));
     }
 
     /**
@@ -35,7 +46,7 @@ public class OrarioController {
      * Consegna il dettaglio completo di una singola entry dell'orario
      */
     @GetMapping("/{id}")
-    public ResponseEntity<List<OraCanonica>> getDettaglio(@PathVariable Integer id) {
+    public ResponseEntity<List<OrarioDettaglioDTO>> getDettaglio(@PathVariable Integer id) {
         return ResponseEntity.ok(orarioService.getOrarioByClasse(id));
     }
 }

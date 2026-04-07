@@ -21,4 +21,7 @@ public interface OraCanonicaRepository extends JpaRepository<OraCanonica, Long> 
     
     // Recupera l'orario completo di una specifica classe
     List<OraCanonica> findByClasseId(Integer classeId);
+
+    // Recupera tutte le ore delle classi indicate, ordinate per classe e ora.
+    List<OraCanonica> findByClasseIdInOrderByClasseAnnoAscClasseSezioneAscNumeroOraAsc(List<Long> classeIds);
 }

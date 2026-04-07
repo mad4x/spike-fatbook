@@ -9,6 +9,7 @@ export type NormalizedOrarioEntry = {
   hour: number | null;
   subject: string;
   classroom: string | null;
+  teachers: string[];
 };
 
 function toRecord(value: unknown): Record<string, unknown> | null {
@@ -132,6 +133,31 @@ function getClassroom(value: unknown): string | null {
   return readString(record.numero) ?? readString(record.name) ?? null;
 }
 
+function getTeachers(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      const asString = readString(item);
+      if (asString) {
+        return asString;
+      }
+
+      const record = toRecord(item);
+      if (!record) {
+        return null;
+      }
+
+      const nome = readString(record.nome) ?? "";
+      const cognome = readString(record.cognome) ?? "";
+      const full = `${nome} ${cognome}`.trim();
+      return full.length > 0 ? full : null;
+    })
+    .filter((item): item is string => item !== null);
+}
+
 export function normalizeOrarioEntry(raw: unknown): NormalizedOrarioEntry {
   const item = toRecord(raw) ?? {};
 
@@ -142,5 +168,6 @@ export function normalizeOrarioEntry(raw: unknown): NormalizedOrarioEntry {
     hour: readNumber(item.numeroOra ?? item.ora ?? item.hour),
     subject: getSubject(item.materia ?? item.subject),
     classroom: getClassroom(item.aula ?? item.classroom),
+    teachers: getTeachers(item.docenti ?? item.teachers),
   };
 }

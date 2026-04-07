@@ -132,6 +132,11 @@ export default function OrarioDetailPage() {
                         {cell?.classroom && (
                           <p className="text-xs text-slate-500">Aula {cell.classroom}</p>
                         )}
+                        {cell && (
+                          <p className="text-xs text-slate-500">
+                            Docenti: {cell.teachers.length > 0 ? cell.teachers.join(", ") : "nessun docente assegnato"}
+                          </p>
+                        )}
                       </td>
                     );
                   })}
