@@ -13,7 +13,7 @@ const GestioneAssenze = () => {
     const oggi = new Date().toISOString().split('T')[0];
 
     const [selectedDate, setSelectedDate] = useState(oggi);
-    const [assenze, setAssenze] = useState< AssenzaResponseDTO[]>([]);
+    const [assenze, setAssenze] = useState<AssenzaResponseDTO[]>([]);
     const [docenti, setDocenti] = useState<DocenteResponseDTO[]>([]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
