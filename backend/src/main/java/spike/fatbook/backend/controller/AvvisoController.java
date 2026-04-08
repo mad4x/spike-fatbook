@@ -1,5 +1,6 @@
 package spike.fatbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,15 +19,10 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api/avvisi")
-@CrossOrigin(origins = "http://localhost:3000")
+@RequiredArgsConstructor
 public class AvvisoController {
 
     private final AvvisoService avvisoService;
-
-    @Autowired
-    public AvvisoController(AvvisoService avvisoService) {
-        this.avvisoService = avvisoService;
-    }
 
     @GetMapping
     public ResponseEntity<List<AvvisoResponse>> getAvvisi() {

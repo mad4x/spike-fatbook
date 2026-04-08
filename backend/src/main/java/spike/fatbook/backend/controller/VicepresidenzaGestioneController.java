@@ -15,15 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import spike.fatbook.backend.dto.AulaAdminDTO;
-import spike.fatbook.backend.dto.AulaWriteDTO;
-import spike.fatbook.backend.dto.ClasseAdminDTO;
-import spike.fatbook.backend.dto.ClasseWriteDTO;
-import spike.fatbook.backend.dto.MateriaAdminDTO;
-import spike.fatbook.backend.dto.MateriaWriteDTO;
-import spike.fatbook.backend.dto.OrarioClasseUpsertDTO;
-import spike.fatbook.backend.dto.OrarioClasseUpdateDTO;
-import spike.fatbook.backend.dto.OrarioClasseVicepresideDTO;
+import spike.fatbook.backend.dto.*;
+import spike.fatbook.backend.service.DocenteService;
 import spike.fatbook.backend.service.VicepresidenzaGestioneService;
 
 @RestController
@@ -33,6 +26,7 @@ import spike.fatbook.backend.service.VicepresidenzaGestioneService;
 public class VicepresidenzaGestioneController {
 
     private final VicepresidenzaGestioneService service;
+    private final DocenteService docenteService;
 
     @GetMapping("/classi")
     public ResponseEntity<List<ClasseAdminDTO>> getClassi() {
@@ -117,5 +111,22 @@ public class VicepresidenzaGestioneController {
         @RequestBody OrarioClasseUpsertDTO dto
     ) {
         return ResponseEntity.ok(service.upsertOraClasse(classeId, dto));
+    }
+
+    @PostMapping("/docente")
+    public ResponseEntity<String> creaDocente(@RequestBody DocenteRequestDTO dto) {
+        try {
+            // Passiamo il "pacchetto" al Service che farà tutto il lavoro sporco
+            docenteService.creaNuovoDocente(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Docente creato con successo!");
+
+        } catch (IllegalArgumentException e) {
+            // Se l'email esiste già, il Service lancia questa eccezione e noi restituiamo un errore 400 (Bad Request)
+            return ResponseEntity.badRequest().body(e.getMessage());
+
+        } catch (Exception e) {
+            // Per qualsiasi altro errore imprevisto, restituiamo un 500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Errore interno durante la creazione del docente.");
+        }
     }
 }
